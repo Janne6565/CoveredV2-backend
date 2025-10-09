@@ -15,7 +15,6 @@ spring:
     driverClassName: org.h2.Driver
     username: sa
     password: password
-
 app:
   steam:
     api_key: ${STEAM_API_KEY}
