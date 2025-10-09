@@ -1,0 +1,3 @@
+2025-10-09 23:13:12.869309+02:00 jdbc[3]: exception
+org.h2.jdbc.JdbcSQLDataException: Value too long for column "SHORT_DESCRIPTION CHARACTER VARYING(255)": "'Life on Tiny Planet was calm and carefree until a great disaster occurred - Tin... (341)"; SQL statement:
+insert into game (capsule_image_url,header_image_url,library_image_url,name,short_description,steam_id,uuid) values (?,?,?,?,?,?,?) [22001-232]
