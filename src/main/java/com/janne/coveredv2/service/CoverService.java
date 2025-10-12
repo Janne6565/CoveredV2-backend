@@ -1,5 +1,6 @@
 package com.janne.coveredv2.service;
 
+import com.janne.coveredv2.dtos.steamgriddbapi.GridDto;
 import com.janne.coveredv2.entities.Cover;
 import com.janne.coveredv2.repositories.CoverRepository;
 import com.janne.coveredv2.repositories.GameRepository;
@@ -14,7 +15,8 @@ import reactor.core.scheduler.Schedulers;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 @Slf4j
 @Service
@@ -31,8 +33,8 @@ public class CoverService {
 
 	public Mono<List<Cover>> fetchCoversFromSteamId(long steamId) {
 		return steamGridDBApiService.getSteamGridDbIdFromSteamAppId(steamId)
-				.flatMap(steamGridDBApiService::getGridsFromGridDbId)
-				.map(grids -> Arrays.stream(grids)
+				.flatMap(steamGridDBApiService::getAllGridsFromGridDbId)
+				.map(grids -> Arrays.stream(grids.toArray(GridDto[]::new))
 						.map(steamGridDBApiService::convertSteamGridDBCover)
 						.toList())
 				.onErrorResume(ResponseStatusException.class, ex -> {
@@ -56,5 +58,9 @@ public class CoverService {
 
 	public List<Cover> getAllCovers() {
 		return coverRepository.findAll();
+	}
+
+	public Page<Cover> getAllCovers(Pageable pageable) {
+		return coverRepository.findAll(pageable);
 	}
 }

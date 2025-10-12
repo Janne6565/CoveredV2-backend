@@ -4,12 +4,12 @@ import com.janne.coveredv2.entities.Cover;
 import com.janne.coveredv2.service.CoverService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,12 +19,13 @@ public class CoverController {
 	private final CoverService coverService;
 
 	@GetMapping
-	public ResponseEntity<List<Cover>> getAllCovers() {
-		return ResponseEntity.ok(coverService.getAllCovers());
+	public ResponseEntity<Page<Cover>> getAllCovers(@PageableDefault(size = 50) Pageable pageable) {
+		return ResponseEntity.ok(coverService.getAllCovers(pageable));
 	}
 
 	@GetMapping("/game/{gameId}")
 	public ResponseEntity<List<Cover>> getCoversFromGameId(@PathVariable String gameId) {
 		return ResponseEntity.ok(coverService.getCoversFromGameId(gameId));
 	}
+
 }

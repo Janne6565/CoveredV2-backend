@@ -20,3 +20,7 @@ app:
     api_key: ${STEAM_API_KEY}
   steamgriddb:
     api_key: ${STREAMGRIDDB_API_KEY}
+
+server:
+  error:
+    include-message: always

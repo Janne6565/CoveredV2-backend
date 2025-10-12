@@ -7,14 +7,15 @@ import com.janne.coveredv2.repositories.GameRepository;
 import com.janne.coveredv2.service.apis.SteamApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.util.List;
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -28,31 +29,41 @@ public class GameService {
 	@Scheduled(fixedDelay = 1, timeUnit = java.util.concurrent.TimeUnit.SECONDS)
 	private void fetchUnfetchedGames() {
 		List<Game> unfetchedGames = gameRepository.getGamesWithoutFetchedCovers();
-		if (unfetchedGames.isEmpty()) {
-			return;
-		}
-		log.info("Found {} games without fetched covers", unfetchedGames.size());
+		if (!unfetchedGames.isEmpty()) {
+			log.info("Found {} games without fetched covers", unfetchedGames.size());
 
-		unfetchedGames
-				.forEach(game -> {
-							log.info("Fetching covers for game {}", game.getName());
-							coverService.fetchCoversFromSteamId(game.getSteamId())
-									.subscribe(
-											covers -> {
-												Game reloadedGame = gameRepository.findBySteamId(game.getSteamId()).orElseThrow();
-												reloadedGame.setTimeOfLastCoverFetch(System.currentTimeMillis());
-												covers.forEach(cover -> cover.setGameUuid(reloadedGame.getUuid()));
-												coverService.saveCovers(covers.toArray(Cover[]::new));
-												gameRepository.save(reloadedGame);
-												log.info("Fetched covers for game {}", reloadedGame.getName());
-											}
-									);
-						}
-				);
+			unfetchedGames
+					.forEach(game -> {
+								log.info("Fetching covers for game {}", game.getName());
+								coverService.fetchCoversFromSteamId(game.getSteamId())
+										.subscribe(
+												covers -> {
+													Game reloadedGame = gameRepository.findBySteamId(game.getSteamId()).orElseThrow();
+													reloadedGame.setTimeOfLastCoverFetch(System.currentTimeMillis());
+													covers.forEach(cover -> cover.setGameUuid(reloadedGame.getUuid()));
+													coverService.saveCovers(covers.toArray(Cover[]::new));
+													gameRepository.save(reloadedGame);
+													log.info("Fetched {} covers for game {}", covers.size(), reloadedGame.getName());
+												}
+										);
+							}
+					);
+		}
 	}
 
 	public Game[] getAllGames() {
 		return gameRepository.findAll().toArray(new Game[0]);
+	}
+
+	public Page<Game> getAllGames(Pageable pageable) {
+		return gameRepository.findAll(pageable);
+	}
+
+	public Page<Game> getAllGames(Pageable pageable, String search) {
+		if (search == null || search.isBlank()) {
+			return gameRepository.findAll(pageable);
+		}
+		return gameRepository.findByNameContainingIgnoreCase(search.trim(), pageable);
 	}
 
 	public Game saveGame(Game game) {
@@ -67,23 +78,35 @@ public class GameService {
 		}
 		List<UserGameLibraryDto.Game> games = userGameLibraryDto.getResponse().getGames();
 
-		return Flux.fromIterable(games)
-				.flatMap(game -> getGameFromSteamId(game.getAppid()))
-				.collectList()
-				.map(list -> list.toArray(new Game[0]))
-				.map(list -> {
-					log.info("Loaded {} Games from User with SteamId {}", list.length, steamUserId);
-					return list;
-				})
-				.block();
+		return games.stream()
+				.map(game -> getGameFromSteamId(game.getAppid()))
+				.toArray(Game[]::new);
 	}
 
-	private Mono<Game> getGameFromSteamId(Long appid) {
-		if (gameRepository.findBySteamId(appid).isPresent()) {
-			return Mono.just(gameRepository.findBySteamId(appid).get());
+	public Game[] getGameFromSteamFamilyLibrary(Long steamUserId, String userApiToken) {
+		Long familyId = steamApiService.getSteamFamilyIdForUser(steamUserId, userApiToken).block();
+		if (familyId == null) {
+			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No Steam family group found for user");
 		}
 
-		return steamApiService.fetchGameFromSteamId(appid)
-				.map(this::saveGame);
+		List<Long> appIds = steamApiService.getUserFamilyGameIds(familyId, userApiToken);
+		if (appIds == null || appIds.isEmpty()) {
+			log.info("No shared library apps found for familyId {}", familyId);
+			return new Game[0];
+		}
+
+		return appIds.stream()
+				.map(this::getGameFromSteamId)
+				.toArray(Game[]::new);
+	}
+
+	private Game getGameFromSteamId(Long appid) {
+		Optional<Game> existing = gameRepository.findBySteamId(appid);
+		if (existing.isPresent()) {
+			return existing.get();
+		}
+		Game game = steamApiService.buildGameFromSteamGameId(appid);
+
+		return gameRepository.save(game);
 	}
 }

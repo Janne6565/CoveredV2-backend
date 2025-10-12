@@ -4,10 +4,10 @@ import com.janne.coveredv2.entities.Game;
 import com.janne.coveredv2.service.GameService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 @RestController
 @RequiredArgsConstructor
@@ -17,8 +17,9 @@ public class GameController {
 	private final GameService gameService;
 
 	@GetMapping
-	public ResponseEntity<Game[]> getAllGames() {
-		return ResponseEntity.ok(gameService.getAllGames());
+	public ResponseEntity<Page<Game>> getAllGames(@PageableDefault(size = 50) Pageable pageable,
+	                                              @RequestParam(value = "search", required = false) String search) {
+		return ResponseEntity.ok(gameService.getAllGames(pageable, search));
 	}
 
 	@GetMapping("/player/{playerId}")
@@ -26,4 +27,9 @@ public class GameController {
 		return ResponseEntity.ok(gameService.getGamesFromPlayer(playerId));
 	}
 
+	@GetMapping("/family/{userId}")
+	public ResponseEntity<Game[]> getGamesFromSteamFamilyLibrary(@PathVariable Long userId,
+	                                                             @RequestParam("token") String userApiToken) {
+		return ResponseEntity.ok(gameService.getGameFromSteamFamilyLibrary(userId, userApiToken));
+	}
 }

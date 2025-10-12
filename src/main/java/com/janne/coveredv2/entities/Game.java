@@ -19,10 +19,10 @@ public class Game {
 	private String name;
 	private Long steamId;
 	@Lob
-	private String shortDescription;
 	private String headerImageUrl;
 	private String capsuleImageUrl;
 	private String libraryImageUrl;
 	private Long timeOfLastCoverFetch;
 	private Boolean steamGridDbMissing;
+	private Long gameFetchedAt;
 }
