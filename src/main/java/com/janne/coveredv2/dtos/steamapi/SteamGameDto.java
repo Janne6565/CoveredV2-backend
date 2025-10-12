@@ -11,7 +11,7 @@ import java.util.List;
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonIgnoreProperties
-public class SteamGameEntity {
+public class SteamGameDto {
 	private String type;
 	private String name;
 	private long steamAppid;

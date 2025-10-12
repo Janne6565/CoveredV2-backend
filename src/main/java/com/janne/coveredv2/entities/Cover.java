@@ -12,17 +12,21 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
-public class Game {
+public class Cover {
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)
 	private String uuid;
-	private String name;
-	private Long steamId;
+	private long steamGridDbId;
+	private String style;
+	private String gameUuid;
+	private int width;
+	private int height;
+	private boolean nsfw;
+	private boolean humor;
 	@Lob
-	private String shortDescription;
-	private String headerImageUrl;
-	private String capsuleImageUrl;
-	private String libraryImageUrl;
-	private Long timeOfLastCoverFetch;
-	private Boolean steamGridDbMissing;
+	private String notes;
+	private String mime;
+	private String language;
+	private String thumb;
+	private String url;
 }
