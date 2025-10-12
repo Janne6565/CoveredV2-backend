@@ -24,6 +24,7 @@ public class UserGameLibraryDto {
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class Game {
         private long appid;
+				private String name;
         private int playtimeForever;
         private int playtimeWindowsForever;
         private int playtimeMacForever;

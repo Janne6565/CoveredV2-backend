@@ -1,5 +1,6 @@
 package com.janne.coveredv2.service;
 
+import com.janne.coveredv2.dtos.steamapi.SharedLibraryAppsDto;
 import com.janne.coveredv2.dtos.steamapi.UserGameLibraryDto;
 import com.janne.coveredv2.entities.Cover;
 import com.janne.coveredv2.entities.Game;
@@ -79,7 +80,7 @@ public class GameService {
 		List<UserGameLibraryDto.Game> games = userGameLibraryDto.getResponse().getGames();
 
 		return games.stream()
-				.map(game -> getGameFromSteamId(game.getAppid()))
+				.map(game -> getGameFromSteamId(game.getAppid(), game.getName()))
 				.toArray(Game[]::new);
 	}
 
@@ -89,23 +90,23 @@ public class GameService {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No Steam family group found for user");
 		}
 
-		List<Long> appIds = steamApiService.getUserFamilyGameIds(familyId, userApiToken);
+		List<SharedLibraryAppsDto.App> appIds = steamApiService.getUserFamilyGameIds(familyId, userApiToken);
 		if (appIds == null || appIds.isEmpty()) {
 			log.info("No shared library apps found for familyId {}", familyId);
 			return new Game[0];
 		}
 
 		return appIds.stream()
-				.map(this::getGameFromSteamId)
+				.map(app -> getGameFromSteamId(app.getAppid(), app.getName()))
 				.toArray(Game[]::new);
 	}
 
-	private Game getGameFromSteamId(Long appid) {
+	private Game getGameFromSteamId(Long appid, String gameName) {
 		Optional<Game> existing = gameRepository.findBySteamId(appid);
 		if (existing.isPresent()) {
 			return existing.get();
 		}
-		Game game = steamApiService.buildGameFromSteamGameId(appid);
+		Game game = steamApiService.buildGameFromSteamGameId(appid, gameName);
 
 		return gameRepository.save(game);
 	}
