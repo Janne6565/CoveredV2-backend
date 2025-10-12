@@ -32,4 +32,9 @@ public class GameController {
 	                                                             @RequestParam("token") String userApiToken) {
 		return ResponseEntity.ok(gameService.getGameFromSteamFamilyLibrary(userId, userApiToken));
 	}
+
+	@PostMapping("/steam/{steamGameId}")
+	public ResponseEntity<Game> loadGameFromSteam(@PathVariable Long steamGameId, @RequestBody String gameName) {
+		return ResponseEntity.ok(gameService.loadGame(steamGameId, gameName));
+	}
 }

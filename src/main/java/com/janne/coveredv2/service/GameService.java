@@ -14,6 +14,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+import reactor.util.function.Tuple2;
+import reactor.util.function.Tuples;
 
 import java.util.List;
 import java.util.Optional;
@@ -33,22 +37,34 @@ public class GameService {
 		if (!unfetchedGames.isEmpty()) {
 			log.info("Found {} games without fetched covers", unfetchedGames.size());
 
-			unfetchedGames
-					.forEach(game -> {
-								log.info("Fetching covers for game {}", game.getName());
-								coverService.fetchCoversFromSteamId(game.getSteamId())
-										.subscribe(
-												covers -> {
-													Game reloadedGame = gameRepository.findBySteamId(game.getSteamId()).orElseThrow();
-													reloadedGame.setTimeOfLastCoverFetch(System.currentTimeMillis());
-													covers.forEach(cover -> cover.setGameUuid(reloadedGame.getUuid()));
-													coverService.saveCovers(covers.toArray(Cover[]::new));
-													gameRepository.save(reloadedGame);
-													log.info("Fetched {} covers for game {}", covers.size(), reloadedGame.getName());
-												}
-										);
-							}
-					);
+			int concurrency = Math.min(100, unfetchedGames.size()); // tune this value as needed
+
+			Flux.fromIterable(unfetchedGames)
+					.flatMap(game ->
+									coverService.fetchCoversFromSteamId(game.getSteamId())
+											.doOnSubscribe(s -> log.info("Fetching covers for game {}", game.getName()))
+											.map(covers -> Tuples.of(game, covers))
+											.onErrorResume(ex -> {
+												log.warn("Failed to fetch covers for game {}: {}", game.getName(), ex.getMessage());
+												return Mono.just(Tuples.of(game, List.<Cover>of()));
+											}),
+							concurrency
+					)
+					.doOnNext((Tuple2<Game, List<Cover>> tuple) -> {
+						Game game = tuple.getT1();
+						List<Cover> covers = tuple.getT2();
+
+						Game reloadedGame = gameRepository.findBySteamId(game.getSteamId()).orElseThrow();
+						reloadedGame.setTimeOfLastCoverFetch(System.currentTimeMillis());
+						covers.forEach(cover -> cover.setGameUuid(reloadedGame.getUuid()));
+						if (!covers.isEmpty()) {
+							coverService.saveCovers(covers.toArray(Cover[]::new));
+						}
+						gameRepository.save(reloadedGame);
+						log.info("Fetched {} covers for game {}", covers.size(), reloadedGame.getName());
+					})
+					.then()
+					.block(); // Block until all parallel fetches complete
 		}
 	}
 
@@ -108,6 +124,11 @@ public class GameService {
 		}
 		Game game = steamApiService.buildGameFromSteamGameId(appid, gameName);
 
+		return gameRepository.save(game);
+	}
+
+	public Game loadGame(Long steamGameId, String gameName) {
+		Game game = getGameFromSteamId(steamGameId, gameName);
 		return gameRepository.save(game);
 	}
 }
