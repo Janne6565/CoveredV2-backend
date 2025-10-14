@@ -32,5 +32,7 @@ public class UserGameLibraryDto {
         private int playtimeDeckForever;
         private long rtimeLastPlayed;
         private int playtimeDisconnected;
+				private String imgIconUrl;
+				private String capsuleFilename;
     }
 }

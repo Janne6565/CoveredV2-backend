@@ -24,5 +24,5 @@ public class Game {
 	private String libraryImageUrl;
 	private Long timeOfLastCoverFetch;
 	private Boolean steamGridDbMissing;
-	private Long gameFetchedAt;
+	private String capsuleFilename;
 }

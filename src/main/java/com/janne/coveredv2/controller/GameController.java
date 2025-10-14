@@ -34,7 +34,7 @@ public class GameController {
 	}
 
 	@PostMapping("/steam/{steamGameId}")
-	public ResponseEntity<Game> loadGameFromSteam(@PathVariable Long steamGameId, @RequestBody String gameName) {
-		return ResponseEntity.ok(gameService.loadGame(steamGameId, gameName));
+	public ResponseEntity<Game> loadGameFromSteam(@PathVariable Long steamGameId, @RequestBody Game game) {
+		return ResponseEntity.ok(gameService.loadGame(steamGameId, game.getName(), game.getCapsuleFilename()));
 	}
 }

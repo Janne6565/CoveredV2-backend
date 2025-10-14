@@ -96,7 +96,7 @@ public class GameService {
 		List<UserGameLibraryDto.Game> games = userGameLibraryDto.getResponse().getGames();
 
 		return games.stream()
-				.map(game -> getGameFromSteamId(game.getAppid(), game.getName()))
+				.map(game -> getGameFromSteamId(game.getAppid(), game.getName(), game.getCapsuleFilename()))
 				.toArray(Game[]::new);
 	}
 
@@ -113,22 +113,22 @@ public class GameService {
 		}
 
 		return appIds.stream()
-				.map(app -> getGameFromSteamId(app.getAppid(), app.getName()))
+				.map(app -> getGameFromSteamId(app.getAppid(), app.getName(), app.getCapsuleFilename()))
 				.toArray(Game[]::new);
 	}
 
-	private Game getGameFromSteamId(Long appid, String gameName) {
+	private Game getGameFromSteamId(Long appid, String gameName, String capsuleFilename) {
 		Optional<Game> existing = gameRepository.findBySteamId(appid);
 		if (existing.isPresent()) {
 			return existing.get();
 		}
-		Game game = steamApiService.buildGameFromSteamGameId(appid, gameName);
+		Game game = steamApiService.buildGameFromSteamGameId(appid, gameName, capsuleFilename);
 
 		return gameRepository.save(game);
 	}
 
-	public Game loadGame(Long steamGameId, String gameName) {
-		Game game = getGameFromSteamId(steamGameId, gameName);
+	public Game loadGame(Long steamGameId, String gameName, String capsuleFilename) {
+		Game game = getGameFromSteamId(steamGameId, gameName, capsuleFilename);
 		return gameRepository.save(game);
 	}
 }

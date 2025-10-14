@@ -3,6 +3,8 @@ package com.janne.coveredv2.controller;
 import com.janne.coveredv2.entities.Cover;
 import com.janne.coveredv2.service.CoverService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -31,6 +33,15 @@ public class CoverController {
 	@PostMapping("/games")
 	public ResponseEntity<List<Cover>> saveCovers(@RequestBody String[] gamesUuids) {
 		return ResponseEntity.ok(coverService.getCoversFromGameIds(gamesUuids));
+	}
+
+	@PostMapping(value = "/export", consumes = MediaType.APPLICATION_JSON_VALUE)
+	public ResponseEntity<byte[]> exportCoversZip(@RequestBody java.util.List<String> coverUuids) {
+		byte[] zipBytes = coverService.buildCoversZip(coverUuids);
+		return ResponseEntity.ok()
+				.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"export.zip\"")
+				.contentType(MediaType.APPLICATION_OCTET_STREAM)
+				.body(zipBytes);
 	}
 
 }

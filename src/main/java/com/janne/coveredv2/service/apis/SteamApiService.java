@@ -28,20 +28,21 @@ public class SteamApiService {
 	public Mono<UserGameLibraryDto> getUserGameLibrary(Long steamUserId) {
 		return webClient.get()
 				.uri("https://api.steampowered.com/IPlayerService/GetOwnedGames/v0001?key=" + API_KEY + "&steamid=" + steamUserId
-						+ "&format=json&include_appinfo=true&include_played_free_games=true&include_free_sub=true")
+						+ "&format=json&include_appinfo=true&include_played_free_games=true&include_free_sub=true&include_extended_appinfo=true")
 				.retrieve()
 				.onStatus(status -> !status.is2xxSuccessful(),
 						clientResponse -> clientResponse.createException().flatMap(Mono::error))
 				.bodyToMono(UserGameLibraryDto.class);
 	}
 
-	public Game buildGameFromSteamGameId(Long steamGameId, String gameName) {
+	public Game buildGameFromSteamGameId(Long steamGameId, String gameName, String capsuleFilename) {
 		return Game.builder()
 				.name(gameName)
 				.steamId(steamGameId)
 				.capsuleImageUrl("https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/" + steamGameId + "/capsule_231x87.jpg")
 				.libraryImageUrl("https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/" + steamGameId + "/library_600x900.jpg")
 				.headerImageUrl("https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/" + steamGameId + "/header.jpg")
+				.capsuleFilename(capsuleFilename)
 				.steamGridDbMissing(false)
 				.build();
 	}
