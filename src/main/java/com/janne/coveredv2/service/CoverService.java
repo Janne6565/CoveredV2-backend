@@ -63,4 +63,8 @@ public class CoverService {
 	public Page<Cover> getAllCovers(Pageable pageable) {
 		return coverRepository.findAll(pageable);
 	}
+
+	public List<Cover> getCoversFromGameIds(String[] gamesUuids) {
+		return coverRepository.findByGameUuidIn(Arrays.asList(gamesUuids));
+	}
 }

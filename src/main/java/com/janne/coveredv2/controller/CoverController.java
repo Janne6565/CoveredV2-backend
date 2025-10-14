@@ -28,4 +28,9 @@ public class CoverController {
 		return ResponseEntity.ok(coverService.getCoversFromGameId(gameId));
 	}
 
+	@PostMapping("/games")
+	public ResponseEntity<List<Cover>> saveCovers(@RequestBody String[] gamesUuids) {
+		return ResponseEntity.ok(coverService.getCoversFromGameIds(gamesUuids));
+	}
+
 }
