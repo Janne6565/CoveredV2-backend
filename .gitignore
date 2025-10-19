@@ -36,3 +36,5 @@ build/
 
 data.mv.db
 data.trace.db
+
+.run/

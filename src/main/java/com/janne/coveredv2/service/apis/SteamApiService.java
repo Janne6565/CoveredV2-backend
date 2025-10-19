@@ -3,12 +3,15 @@ package com.janne.coveredv2.service.apis;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.janne.coveredv2.dtos.steamapi.SharedLibraryAppsDto;
 import com.janne.coveredv2.dtos.steamapi.UserGameLibraryDto;
+import com.janne.coveredv2.dtos.steamapi.VanityUrlLookupResponseDto;
 import com.janne.coveredv2.entities.Game;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Mono;
 
 import java.util.Collections;
@@ -86,6 +89,21 @@ public class SteamApiService {
 				.filter(Objects::nonNull)
 				.distinct()
 				.collect(Collectors.toList());
+	}
+
+	public String resolveSteamIdFromSteamVanityUrl(String vanityUrl) {
+		VanityUrlLookupResponseDto response = webClient.get()
+				.uri("https://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=" + API_KEY + "&vanityurl=" + vanityUrl)
+				.retrieve()
+				.onStatus(status -> !status.is2xxSuccessful(),
+						clientResponse -> clientResponse.createException().flatMap(Mono::error))
+				.bodyToMono(VanityUrlLookupResponseDto.class)
+				.block();
+		if (response.getResponse().getSuccess() != 1) {
+			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Vanity URL not found");
+		}
+
+		return response.getResponse().getSteamid();
 	}
 
 
