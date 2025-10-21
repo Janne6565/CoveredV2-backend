@@ -133,6 +133,7 @@ public class SteamGridDBApiService {
 	public Cover convertSteamGridDBCover(GridDto mono) {
 		return Cover.builder()
 				.url(mono.getUrl())
+				.author(Cover.Author.convertFromSteamGridDbApi(mono.getAuthor()))
 				.steamGridDbId(mono.getId())
 				.style(mono.getStyle())
 				.width(mono.getWidth())
