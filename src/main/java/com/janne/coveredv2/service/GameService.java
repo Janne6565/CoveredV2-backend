@@ -1,5 +1,6 @@
 package com.janne.coveredv2.service;
 
+import com.janne.coveredv2.dtos.GameWithPlaytime;
 import com.janne.coveredv2.dtos.steamapi.SharedLibraryAppsDto;
 import com.janne.coveredv2.dtos.steamapi.UserGameLibraryDto;
 import com.janne.coveredv2.entities.Cover;
@@ -87,7 +88,7 @@ public class GameService {
 		return gameRepository.save(game);
 	}
 
-	public Game[] getGamesFromPlayer(Long steamUserId) {
+	public GameWithPlaytime[] getGamesFromPlayer(Long steamUserId) {
 		UserGameLibraryDto userGameLibraryDto = steamApiService.getUserGameLibrary(steamUserId).block();
 
 		if (userGameLibraryDto == null) {
@@ -96,11 +97,15 @@ public class GameService {
 		List<UserGameLibraryDto.Game> games = userGameLibraryDto.getResponse().getGames();
 
 		return games.stream()
-				.map(game -> getGameFromSteamId(game.getAppid(), game.getName(), game.getCapsuleFilename()))
-				.toArray(Game[]::new);
+				.map(game -> GameWithPlaytime.builder()
+						.game(getGameFromSteamId(game.getAppid(), game.getName(), game.getCapsuleFilename()))
+						.playtime(game.getPlaytimeForever())
+						.build()
+				)
+				.toArray(GameWithPlaytime[]::new);
 	}
 
-	public Game[] getGameFromSteamFamilyLibrary(Long steamUserId, String userApiToken) {
+	public GameWithPlaytime[] getGameFromSteamFamilyLibrary(Long steamUserId, String userApiToken) {
 		Long familyId = steamApiService.getSteamFamilyIdForUser(steamUserId, userApiToken).block();
 		if (familyId == null) {
 			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No Steam family group found for user");
@@ -109,12 +114,16 @@ public class GameService {
 		List<SharedLibraryAppsDto.App> appIds = steamApiService.getUserFamilyGameIds(familyId, userApiToken);
 		if (appIds == null || appIds.isEmpty()) {
 			log.info("No shared library apps found for familyId {}", familyId);
-			return new Game[0];
+			return new GameWithPlaytime[0];
 		}
 
 		return appIds.stream()
-				.map(app -> getGameFromSteamId(app.getAppid(), app.getName(), app.getCapsuleFilename()))
-				.toArray(Game[]::new);
+				.map(app -> GameWithPlaytime.builder()
+						.game(getGameFromSteamId(app.getAppid(), app.getName(), app.getCapsuleFilename()))
+						.playtime(app.getRtPlaytime())
+						.build()
+				)
+				.toArray(GameWithPlaytime[]::new);
 	}
 
 	private Game getGameFromSteamId(Long appid, String gameName, String capsuleFilename) {

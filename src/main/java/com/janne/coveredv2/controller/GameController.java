@@ -1,5 +1,6 @@
 package com.janne.coveredv2.controller;
 
+import com.janne.coveredv2.dtos.GameWithPlaytime;
 import com.janne.coveredv2.entities.Game;
 import com.janne.coveredv2.service.GameService;
 import lombok.RequiredArgsConstructor;
@@ -23,12 +24,12 @@ public class GameController {
 	}
 
 	@GetMapping("/player/{playerId}")
-	public ResponseEntity<Game[]> getGamesFromPlayer(@PathVariable Long playerId) {
+	public ResponseEntity<GameWithPlaytime[]> getGamesFromPlayer(@PathVariable Long playerId) {
 		return ResponseEntity.ok(gameService.getGamesFromPlayer(playerId));
 	}
 
 	@GetMapping("/family/{userId}")
-	public ResponseEntity<Game[]> getGamesFromSteamFamilyLibrary(@PathVariable Long userId,
+	public ResponseEntity<GameWithPlaytime[]> getGamesFromSteamFamilyLibrary(@PathVariable Long userId,
 	                                                             @RequestParam("token") String userApiToken) {
 		return ResponseEntity.ok(gameService.getGameFromSteamFamilyLibrary(userId, userApiToken));
 	}
