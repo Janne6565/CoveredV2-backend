@@ -106,24 +106,28 @@ public class GameService {
 	}
 
 	public GameWithPlaytime[] getGameFromSteamFamilyLibrary(Long steamUserId, String userApiToken) {
-		Long familyId = steamApiService.getSteamFamilyIdForUser(steamUserId, userApiToken).block();
-		if (familyId == null) {
-			throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No Steam family group found for user");
-		}
+		try {
+			Long familyId = steamApiService.getSteamFamilyIdForUser(steamUserId, userApiToken).block();
+			if (familyId == null) {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "No Steam family group found for user");
+			}
 
-		List<SharedLibraryAppsDto.App> appIds = steamApiService.getUserFamilyGameIds(familyId, userApiToken);
-		if (appIds == null || appIds.isEmpty()) {
-			log.info("No shared library apps found for familyId {}", familyId);
-			return new GameWithPlaytime[0];
-		}
+			List<SharedLibraryAppsDto.App> appIds = steamApiService.getUserFamilyGameIds(familyId, userApiToken);
+			if (appIds == null || appIds.isEmpty()) {
+				log.info("No shared library apps found for familyId {}", familyId);
+				return new GameWithPlaytime[0];
+			}
 
-		return appIds.stream()
-				.map(app -> GameWithPlaytime.builder()
-						.game(getGameFromSteamId(app.getAppid(), app.getName(), app.getCapsuleFilename()))
-						.playtime(app.getRtPlaytime())
-						.build()
-				)
-				.toArray(GameWithPlaytime[]::new);
+			return appIds.stream()
+					.map(app -> GameWithPlaytime.builder()
+							.game(getGameFromSteamId(app.getAppid(), app.getName(), app.getCapsuleFilename()))
+							.playtime(app.getRtPlaytime())
+							.build()
+					)
+					.toArray(GameWithPlaytime[]::new);
+		} catch (Exception e) {
+			return getGamesFromPlayer(steamUserId);
+		}
 	}
 
 	private Game getGameFromSteamId(Long appid, String gameName, String capsuleFilename) {
