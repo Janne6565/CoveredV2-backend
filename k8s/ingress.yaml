@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: covered-backend-ingress
+  namespace: covered
+  labels:
+    app: covered-backend
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: covered.jannekeipert.de
+      http:
+        paths:
+          - path: /api/v1
+            pathType: Prefix
+            backend:
+              service:
+                name: covered-backend-service
+                port:
+                  number: 8080
+  tls:
+    - hosts:
+        - covered.jannekeipert.de
+      secretName: multi-domain-cert

@@ -1,0 +1,61 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: covered-backend
+  namespace: covered
+  labels:
+    app: covered-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: covered-backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        app: covered-backend
+    spec:
+      containers:
+        - name: covered-backend
+          image: janne5656/coveredv2-backend:latest
+          imagePullPolicy: Always
+          env:
+            - name: SPRING_DATASOURCE_URL
+              value: jdbc:postgresql://postgres.medals.svc.cluster.local:5432/covered_db
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: covered-db-secret
+                  key: username
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: covered-db-secret
+                  key: password
+            - name: STEAM_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: covered-api-secrets
+                  key: STEAM_API_KEY
+            - name: STREAMGRIDDB_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: covered-api-secrets
+                  key: STREAMGRIDDB_API_KEY
+            - name: SPRING_PROFILES_ACTIVE
+              value: prod
+            - name: APP_STEAMGRIDDB_CONCURRENCY_COUNT
+              value: '10'
+          ports:
+            - containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            privileged: false
+            readOnlyRootFilesystem: false
+            runAsNonRoot: false
+          resources: {}

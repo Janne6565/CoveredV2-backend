@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: covered-backend-service
+  namespace: covered
+  labels:
+    app: covered-backend
+spec:
+  type: ClusterIP
+  selector:
+    app: covered-backend
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      protocol: TCP
