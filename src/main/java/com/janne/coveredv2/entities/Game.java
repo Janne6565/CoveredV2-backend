@@ -18,7 +18,6 @@ public class Game {
 	private String uuid;
 	private String name;
 	private Long steamId;
-	@Lob
 	private String headerImageUrl;
 	private String capsuleImageUrl;
 	private String libraryImageUrl;

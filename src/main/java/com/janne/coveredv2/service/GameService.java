@@ -17,7 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.util.function.Tuple2;
+import reactor.util.function.Tuple3;
 import reactor.util.function.Tuples;
 
 import java.util.List;
@@ -44,16 +44,17 @@ public class GameService {
 					.flatMap(game ->
 									coverService.fetchCoversFromSteamId(game.getSteamId())
 											.doOnSubscribe(s -> log.info("Fetching covers for game {}", game.getName()))
-											.map(covers -> Tuples.of(game, covers))
-											.onErrorResume(ex -> {
-												log.warn("Failed to fetch covers for game {}: {}", game.getName(), ex.getMessage());
-												return Mono.just(Tuples.of(game, List.<Cover>of()));
-											}),
+											.map(covers -> Tuples.of(game, covers, true))
+											.onErrorResume(ex -> Mono.just(Tuples.of(game, List.of(), false))),
 							concurrency
 					)
-					.doOnNext((Tuple2<Game, List<Cover>> tuple) -> {
+					.doOnNext((Tuple3<Game, List<Cover>, Boolean> tuple) -> {
 						Game game = tuple.getT1();
 						List<Cover> covers = tuple.getT2();
+						if (!tuple.getT3()) {
+							log.warn("Failed to fetch covers for game {}", game.getName());
+							return;
+						}
 
 						Game reloadedGame = gameRepository.findBySteamId(game.getSteamId()).orElseThrow();
 						reloadedGame.setTimeOfLastCoverFetch(System.currentTimeMillis());

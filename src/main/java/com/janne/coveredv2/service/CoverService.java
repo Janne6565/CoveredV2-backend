@@ -8,6 +8,8 @@ import com.janne.coveredv2.repositories.GameRepository;
 import com.janne.coveredv2.service.apis.SteamGridDBApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -23,8 +25,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 
 @Slf4j
 @Service
@@ -76,10 +76,10 @@ public class CoverService {
 	 * Builds a ZIP file (as bytes) structured as:
 	 * {steam_id}/library_600x900.jpg
 	 * For each provided cover UUID:
-	 *  - load Cover; if missing -> skip with debug
-	 *  - ensure cover.gameUuid present; load Game; ensure game.steamId present -> else skip with debug
-	 *  - fetch image bytes from cover.url (via SteamGridDBApiService); on 404/other error -> skip with debug
-	 *  - add to ZIP under "<steamId>/library_600x900.jpg" (always .jpg as requested)
+	 * - load Cover; if missing -> skip with debug
+	 * - ensure cover.gameUuid present; load Game; ensure game.steamId present -> else skip with debug
+	 * - fetch image bytes from cover.url (via SteamGridDBApiService); on 404/other error -> skip with debug
+	 * - add to ZIP under "<steamId>/library_600x900.jpg" (always .jpg as requested)
 	 */
 	public byte[] buildCoversZip(List<String> coverUuids) {
 		if (coverUuids == null || coverUuids.isEmpty()) {

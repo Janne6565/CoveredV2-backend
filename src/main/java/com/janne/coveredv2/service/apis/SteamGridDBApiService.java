@@ -140,7 +140,6 @@ public class SteamGridDBApiService {
 				.height(mono.getHeight())
 				.nsfw(mono.isNsfw())
 				.humor(mono.isHumor())
-				.notes(mono.getNotes())
 				.mime(mono.getMime())
 				.language(mono.getLanguage())
 				.thumb(mono.getThumb())

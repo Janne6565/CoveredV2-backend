@@ -26,8 +26,6 @@ public class Cover {
 	private int height;
 	private boolean nsfw;
 	private boolean humor;
-	@Lob
-	private String notes;
 	private String mime;
 	private String language;
 	private String thumb;
