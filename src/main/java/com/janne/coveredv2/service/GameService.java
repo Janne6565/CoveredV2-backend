@@ -99,6 +99,9 @@ public class GameService {
 			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Steam API response was null");
 		}
 		List<UserGameLibraryDto.Game> games = userGameLibraryDto.getResponse().getGames();
+		if (games == null) {
+			throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, "Steam API response was missing games");
+		}
 
 		return games.stream()
 				.map(game -> GameWithPlaytime.builder()

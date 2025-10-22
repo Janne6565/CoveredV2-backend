@@ -92,6 +92,7 @@ public class SteamApiService {
 	}
 
 	public String resolveSteamIdFromSteamVanityUrl(String vanityUrl) {
+		log.info("Resolving Steam ID for vanity URL {}", vanityUrl);
 		VanityUrlLookupResponseDto response = webClient.get()
 				.uri("https://api.steampowered.com/ISteamUser/ResolveVanityURL/v0001/?key=" + API_KEY + "&vanityurl=" + vanityUrl)
 				.retrieve()
@@ -102,8 +103,20 @@ public class SteamApiService {
 		if (response.getResponse().getSuccess() != 1) {
 			throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Vanity URL not found");
 		}
+		log.info("Resolved Steam ID for vanity URL {} to {}", vanityUrl, response.getResponse().getSteamid());
 
 		return response.getResponse().getSteamid();
+	}
+
+	public String getSteamUserName(Long steamId) {
+		return webClient.get()
+				.uri("https://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=" + API_KEY + "&steamids=" + steamId)
+				.retrieve()
+				.onStatus(status -> !status.is2xxSuccessful(),
+						clientResponse -> clientResponse.createException().flatMap(Mono::error))
+				.bodyToMono(JsonNode.class)
+				.map(json -> json.path("response").path("players").path(0).path("personaname").asText())
+				.block();
 	}
 
 
