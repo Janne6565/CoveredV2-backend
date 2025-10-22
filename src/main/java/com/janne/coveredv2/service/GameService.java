@@ -9,6 +9,7 @@ import com.janne.coveredv2.repositories.GameRepository;
 import com.janne.coveredv2.service.apis.SteamApiService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -31,6 +32,8 @@ public class GameService {
 	private final GameRepository gameRepository;
 	private final SteamApiService steamApiService;
 	private final CoverService coverService;
+	@Value("${app.steamgriddb.concurrency_count:50}")
+	private int concurrencyCount;
 
 	@Scheduled(fixedDelay = 1, timeUnit = java.util.concurrent.TimeUnit.SECONDS)
 	private void fetchUnfetchedGames() {
@@ -38,7 +41,7 @@ public class GameService {
 		if (!unfetchedGames.isEmpty()) {
 			log.info("Found {} games without fetched covers", unfetchedGames.size());
 
-			int concurrency = Math.min(100, unfetchedGames.size()); // tune this value as needed
+			int concurrency = Math.min(concurrencyCount, unfetchedGames.size());
 
 			Flux.fromIterable(unfetchedGames)
 					.flatMap(game ->

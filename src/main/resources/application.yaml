@@ -16,10 +16,12 @@ spring:
     username: sa
     password: password
 app:
+  response-timeout: 1
   steam:
-    api_key: ${STEAM_API_KEY}
+    api-key: ${STEAM_API_KEY}
   steamgriddb:
-    api_key: ${STREAMGRIDDB_API_KEY}
+    api-key: ${STREAMGRIDDB_API_KEY}
+    concurrency_count: 50
 
 server:
   error:

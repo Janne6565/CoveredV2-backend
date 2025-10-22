@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
+import org.springframework.http.client.reactive.ReactorClientHttpConnector;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.ResponseStatusException;
@@ -27,9 +28,9 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class SteamGridDBApiService {
 
-	private final WebClient webClient = WebClient.create();
+	private final WebClient webClient;
 	private final ObjectMapper objectMapper;
-	@Value("${app.steamgriddb.api_key}")
+	@Value("${app.steamgriddb.api-key}")
 	private String API_KEY;
 
 	public Mono<Long> getSteamGridDbIdFromSteamAppId(long steamAppId) {

@@ -24,8 +24,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SteamApiService {
 
-	private final WebClient webClient = WebClient.create();
-	@Value("${app.steam.api_key}")
+	private final WebClient webClient;
+	@Value("${app.steam.api-key}")
 	private String API_KEY;
 
 	public Mono<UserGameLibraryDto> getUserGameLibrary(Long steamUserId) {
