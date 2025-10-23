@@ -1,5 +1,6 @@
 package com.janne.coveredv2.controller;
 
+import com.janne.coveredv2.dtos.ProfileValidityResponse;
 import com.janne.coveredv2.dtos.SteamIdResponse;
 import com.janne.coveredv2.service.apis.SteamApiService;
 import lombok.RequiredArgsConstructor;
@@ -27,4 +28,9 @@ public class UtilController {
 	public ResponseEntity<String> getUserName(@PathVariable Long steamId) {
 		return ResponseEntity.ok(steamApiService.getSteamUserName(steamId));
 	}
+
+    @GetMapping("/steam/profile-validity/{steamId}")
+    public ResponseEntity<ProfileValidityResponse> getProfileValidity(@PathVariable Long steamId) {
+        return ResponseEntity.ok(steamApiService.isProfileValid(steamId));
+    }
 }
