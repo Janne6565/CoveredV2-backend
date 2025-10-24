@@ -6,7 +6,7 @@ import com.janne.coveredv2.entities.Game;
 import com.janne.coveredv2.repositories.CoverRepository;
 import com.janne.coveredv2.repositories.GameRepository;
 import com.janne.coveredv2.service.apis.SteamGridDBApiService;
-import lombok.RequiredArgsConstructor;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -28,12 +28,19 @@ import java.util.zip.ZipOutputStream;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class CoverService {
 
 	private final SteamGridDBApiService steamGridDBApiService;
 	private final CoverRepository coverRepository;
 	private final GameRepository gameRepository;
+
+	public CoverService(SteamGridDBApiService steamGridDBApiService, CoverRepository coverRepository, GameRepository gameRepository, MeterRegistry meterRegistry) {
+		this.steamGridDBApiService = steamGridDBApiService;
+		this.coverRepository = coverRepository;
+		this.gameRepository = gameRepository;
+
+		meterRegistry.gauge("app_cover_count", coverRepository, CoverRepository::count);
+	}
 
 	public List<Cover> getCoversFromGameId(String gameId) {
 		return coverRepository.getCoversByGameUuid(gameId);

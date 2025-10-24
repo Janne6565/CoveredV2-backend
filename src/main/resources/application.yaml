@@ -2,6 +2,11 @@ spring:
   application:
     name:
       CoveredV2
+  security:
+    user:
+      name: user
+      password: password
+      roles: PROMETHEUS
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     show-sql: false
@@ -15,6 +20,18 @@ spring:
     driverClassName: org.h2.Driver
     username: sa
     password: password
+management:
+  endpoints:
+    web:
+      base-path: /api/v1/actuator
+      exposure:
+        include: "health,readiness,liveness,prometheus"
+  metrics:
+    tags:
+      application: ${spring.application.name}
+  endpoint:
+    prometheus:
+      access: unrestricted
 app:
   response-timeout: 1
   steam:
@@ -22,7 +39,6 @@ app:
   steamgriddb:
     api-key: ${STREAMGRIDDB_API_KEY}
     concurrency_count: 50
-
 server:
   error:
     include-message: always

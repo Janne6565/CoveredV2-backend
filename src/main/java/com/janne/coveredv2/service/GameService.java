@@ -7,7 +7,7 @@ import com.janne.coveredv2.entities.Cover;
 import com.janne.coveredv2.entities.Game;
 import com.janne.coveredv2.repositories.GameRepository;
 import com.janne.coveredv2.service.apis.SteamApiService;
-import lombok.RequiredArgsConstructor;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -26,7 +26,6 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class GameService {
 
 	private final GameRepository gameRepository;
@@ -34,6 +33,14 @@ public class GameService {
 	private final CoverService coverService;
 	@Value("${app.steamgriddb.concurrency_count:50}")
 	private int concurrencyCount;
+
+	public GameService(GameRepository gameRepository, SteamApiService steamApiService, CoverService coverService, MeterRegistry meterRegistry) {
+		this.gameRepository = gameRepository;
+		this.steamApiService = steamApiService;
+		this.coverService = coverService;
+
+		meterRegistry.gauge("app_game_count", gameRepository, GameRepository::count);
+	}
 
 	@Scheduled(fixedDelay = 1, timeUnit = java.util.concurrent.TimeUnit.SECONDS)
 	private void fetchUnfetchedGames() {

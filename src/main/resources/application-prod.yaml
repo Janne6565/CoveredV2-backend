@@ -1,8 +1,15 @@
+logging:
+  config: classpath:logback-spring-prod.xml
 spring:
+  security:
+    user:
+      name: prometheus
+      password: ${PROMETHEUS_PASSWORD}
+      roles: PROMETHEUS
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
   datasource:
-    url: {DATABASE_URL}
-    username: {DATABASE_USERNAME}
-    password: {DATABASE_PASSWORD}
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
     driver-class-name: org.postgresql.Driver

@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -12,17 +13,21 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.List;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 @Configuration
 public class SecurityConfig {
 
   @Bean
   public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
     http
-        .cors(Customizer.withDefaults())
-        .csrf(csrf -> csrf.disable())
+        .cors(withDefaults())
+        .csrf(AbstractHttpConfigurer::disable)
         .authorizeHttpRequests(auth -> auth
-            .anyRequest().permitAll()
-        );
+		        .requestMatchers("/api/v1/actuator/prometheus").hasRole("PROMETHEUS")
+		        .anyRequest().permitAll()
+        )
+		    .httpBasic(withDefaults());
     return http.build();
   }
 
